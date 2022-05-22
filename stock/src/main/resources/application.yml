@@ -27,6 +27,7 @@ seata:
       my_test_tx_group: default
     grouplist:
       default: 127.0.0.1:8091
+#  data-source-proxy-mode: XA
 #  registry:
 #    type: nacos
 #    nacos:
