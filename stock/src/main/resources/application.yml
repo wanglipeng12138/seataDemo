@@ -3,12 +3,57 @@ server:
 spring:
   application:
     name: stock
-  datasource:
-    type: com.alibaba.druid.pool.DruidDataSource
-    driverClassName: com.mysql.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/group1?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
-    username: root
-    password: 123456
+    #  datasource:
+    #    type: com.alibaba.druid.pool.DruidDataSource
+    #    driverClassName: com.mysql.jdbc.Driver
+    #    url: jdbc:mysql://127.0.0.1:3306/group1?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Shanghai
+    #    username: root
+    #    password: 123456
+
+    # shardingjdbc 分片策略
+    # 一个实体类对应多张表，覆盖
+  main:
+    allow-bean-definition-overriding: true
+
+
+  # 配置数据源，给数据源起名
+  shardingsphere:
+    datasource:
+      names: ds0,ds1
+      # 配置数据源具体内容，包括连接池、驱动、地址，用户名和密码
+      ds0:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/seata_order?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+        username: root
+        password: 123456
+      ds1:
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+        url: jdbc:mysql://localhost:3306/seata_account?useUnicode=true&characterEncoding=utf8&zeroDateTimeBehavior=convertToNull&useSSL=true&serverTimezone=GMT%2B8
+        username: root
+        password: 123456
+    sharding:
+      default-data-source-name: ds0
+      # 根据 age 分库
+      default-database-strategy:
+        inline:
+          sharding-column: age
+          algorithm-expression: ds$->{age % 2}
+      # 根据 id 分表
+      tables:
+        tb_user:
+          actual-data-nodes: ds$->{0..1}.tb_user$->{0..2}
+          table-strategy:
+            inline:
+              sharding-column: id
+              algorithm-expression: tb_user$->{id % 3}
+          key-generator:
+            column: id
+            type: SNOWFLAKE
+    props:
+      sql:
+        show: true
 
   jpa:
     hibernate:
